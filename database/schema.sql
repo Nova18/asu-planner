@@ -5,7 +5,8 @@ CREATE TABLE courses (
     name VARCHAR(100) NOT NULL,
     credits INTEGER NOT NULL,
     is_required BOOLEAN DEFAULT true,
-    term_recommended INTEGER
+    term_recommended INTEGER,
+    requirement_group VARCHAR(20) DEFAULT NULL
 );
 
 -- PREREQS: keeps track of prereq relations between courses
