@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 from db import get_db_connection
+from collections import defaultdict
 import os
 
 #load environment
@@ -51,7 +52,7 @@ def get_courses():
             'name': row[2],
             'credits': row[3],
             'is_required': row[4],
-            'terms_recommended': row[5],
+            'term_recommended': row[5],
             'requirement_group': row[6]
         })
 
@@ -85,7 +86,6 @@ def get_available_courses(user_id):
     cur.close()
     conn.close()
 
-    from collections import defaultdict
     course_map = {}
     prereq_map = defaultdict(lambda: defaultdict(list))
 
@@ -99,8 +99,8 @@ def get_available_courses(user_id):
                 'code': row[1],
                 'name': row[2],
                 'credits': row[3],
-                'terms_recommended': row[5],
-                'requirement_group': row[6]
+                'term_recommended': row[4],
+                'requirement_group': row[5]
             }
 
         # add prereq to map if row has one, but NULL if not
