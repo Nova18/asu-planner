@@ -33,7 +33,7 @@ CREATE TABLE user_courses (
     course_id INTEGER REFERENCES courses(course_id),
     grade VARCHAR(2),
     passed BOOLEAN NOT NULL,
-    semester_taken VARCHAR(10)
+    semester_taken VARCHAR(20)
 );
 
 -- USER_PLANS: keep track of student's degree plan

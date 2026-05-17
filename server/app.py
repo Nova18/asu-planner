@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import request
 from flask_cors import CORS
 from dotenv import load_dotenv
 from db import get_db_connection
@@ -130,6 +131,54 @@ def get_available_courses(user_id):
 
     #return courses along with statuses
     return {'courses': result}
+
+# called when a completed course is added by user
+@app.route('/user-courses', methods=['POST'])
+def add_user_course():
+    data = request.get_json()
+
+    user_id = data['user_id']
+    course_id = data['course_id']
+    grade = data.get('grade')
+    semester_taken = data.get('semester_taken')
+
+    # check if passed
+    passing_grades = {'A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C'}
+    passed = grade in passing_grades if grade else False
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # add completed course into records
+    cur.execute('''
+        INSERT INTO user_courses (user_id, course_id, grade, passed, semester_taken) 
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING user_course_id       
+    ''', (user_id, course_id, grade, passed, semester_taken))
+    
+    user_course_id = cur.fetchone()[0]
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return {'user_course_id': user_course_id, 'passed': passed}, 201
+
+# called when student removes a completed class
+@app.route('/user-courses/<int:user_course_id>', methods=['DELETE'])
+def delete_user_course(user_course_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute('''
+        DELETE FROM user_courses
+        WHERE user_course_id = %s 
+    ''', (user_course_id,))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return {'status': 'deleted'}
 
 if __name__ == '__main__':
     app.run(debug=True)
