@@ -154,6 +154,22 @@ VALUES (
     1
 );
 
+-- ENG COMP II Needs ENG COMP I
+INSERT INTO prereqs (course_id, prereq_course_id, prereq_group)
+VALUES (
+    (SELECT course_id FROM courses WHERE code = 'ENG COMP 2'),
+    (SELECT course_id FROM courses WHERE code = 'ENG COMP 1'),
+    1
+);
+
+-- SCIT 2 Needs SCIT 1
+INSERT INTO prereqs (course_id, prereq_course_id, prereq_group)
+VALUES (
+    (SELECT course_id FROM courses WHERE code = 'SCIT 2'),
+    (SELECT course_id FROM courses WHERE code = 'SCIT 1'),
+    1
+);
+
 -- Handling Multiple Prereq classes (not including recursive prereqs)
 
 -- CSE 301 Needs CSE 205 and FSE 100
