@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // URL for flask backend
-const API_URL = 'http://127.0.0.1:5000'
+const API_URL = '/api'
 
 // get all courses and their statuses for a user
 export const getAvailableCourses = async (userId) => {
@@ -11,7 +11,7 @@ export const getAvailableCourses = async (userId) => {
 
 // mark a course as completed
 export const addUserCourse = async (userId, courseId, grade, semesterTaken) => {
-    const respond = await axios.post(`${API_URL}/user-courses`, {
+    const response = await axios.post(`${API_URL}/user-courses`, {
         user_id: userId,
         course_id: courseId,
         grade: grade,

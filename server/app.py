@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import request
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
 from db import get_db_connection
 from collections import defaultdict
@@ -11,7 +11,7 @@ load_dotenv()
 
 app = Flask(__name__)
 #react frontend connection to Flask backend
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # health check for running server
 @app.route('/health')
@@ -68,11 +68,11 @@ def get_available_courses(user_id):
 
     # gets all courses student has passed with a set
     cur.execute('''
-        SELECT course_id FROM user_courses
+        SELECT course_id, user_course_id FROM user_courses
         WHERE user_id = %s AND passed = true       
     ''', (user_id,))
-    completed = set(row[0] for row in cur.fetchall())
-    
+    completed = {row[0]: row[1] for row in cur.fetchall()}
+
     # gets all courses along with their prereqs (if applicable)
     cur.execute('''
         SELECT c.course_id, c.code, c.name, c.credits,
@@ -114,10 +114,13 @@ def get_available_courses(user_id):
         
         if cid in completed:
             status = 'completed'
-        
+            course['user_course_id'] = completed[cid]
+
+
         elif not prereq_map[cid]:
             status = 'available'
-        
+            course['user_course_id'] = None
+
         else:
             # check all prereqs are satisfied
             all_groups_satisfied = all(
@@ -125,6 +128,7 @@ def get_available_courses(user_id):
                 for group_prereqs in prereq_map[cid].values()
             )
             status = 'available' if all_groups_satisfied else 'locked'
+            course['user_course_id'] = None
 
         course['status'] = status
         result.append(course)
