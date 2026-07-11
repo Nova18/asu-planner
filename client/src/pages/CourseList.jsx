@@ -33,24 +33,29 @@ function CourseList() {
 }
 
     //used to check what courses are unlocked when a certain course is marked completed
-    const getUnlockedCourses = (completeCourseId, allCourses) => {
-        // creates a set of complete courses including newly added one
+    
+    const getUnlockedCourses = (completedCourseId, allCourses) => {
+        console.log('newly completed course_id:', completedCourseId)
         const completedIds = new Set(
             allCourses
                 .filter(c => c.status === 'completed')
                 .map(c => c.course_id)
         )
-        completedIds.add(completeCourseId)
+        completedIds.add(completedCourseId)
+        console.log('set contents:', [...completedIds])
+        console.log('after add, has 2?', completedIds.has(2), completedIds.has('2'), completedCourseId, typeof completedCourseId)        
+        console.log('completed ids:', completedIds)
+        console.log('all courses prereq_groups sample:', allCourses[1]?.prereq_groups)
 
-        // finds courses that just becam available as a result
         return allCourses.filter(c => {
             if (c.status === 'completed' || c.status === 'available') return false
-            if (!c.prereq_groups) return false
+            if (!c.prereq_groups || Object.keys(c.prereq_groups).length === 0) return false
 
-            //check if all prereqs are satisfied for a course because of this completed course
-            return Object.values(c.prereq_groups).every(group =>
+            const result = Object.values(c.prereq_groups).every(group =>
                 group.some(prereqId => completedIds.has(prereqId))
             )
+            console.log('unlock check:', c.code, JSON.stringify(Object.values(c.prereq_groups)), [...completedIds].slice(0, 5))
+            return result
         })
     }
 
@@ -131,20 +136,21 @@ function CourseList() {
                     type={modal.type}
                     course={modal.course}
                     onConfirm={async (grade, semester) => {
-                    if (modal.type === 'confirm') {
-                        setModal(null)
-                        await deleteUserCourse(modal.course.user_course_id)
-                        fetchCourses()
-                    } else {
-                        setModal(null)
-                        const unlockedCourses = getUnlockedCourses(modal.course.course_id, courses)
-                        await addUserCourse(USER_ID, modal.course.course_id, grade, semester)
-                        await fetchCourses()
-                        setTimeout(() => {
-                        fireConfetti(modal.course.course_id)
-                        setCelebration({ course: modal.course, unlockedCourses })
-                        }, 100)
-                    }
+                        if (modal.type === 'confirm') {
+                            setModal(null)
+                            await deleteUserCourse(modal.course.user_course_id)
+                            fetchCourses()
+                        } else {
+                            setModal(null)
+                            // get unlocked BEFORE fetching new course data
+                            const unlockedCourses = getUnlockedCourses(modal.course.course_id, courses)
+                            await addUserCourse(USER_ID, modal.course.course_id, grade, semester)
+                            await fetchCourses()
+                            setTimeout(() => {
+                                fireConfetti(modal.course.course_id)
+                                setCelebration({ course: modal.course, unlockedCourses })
+                            }, 100)
+                        }
                     }}
                     onCancel={() => setModal(null)}
                 />

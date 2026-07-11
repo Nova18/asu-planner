@@ -88,7 +88,6 @@ def get_available_courses(user_id):
     conn.close()
 
     course_map = {}
-    prereq_map = defaultdict(lambda: defaultdict(list))
 
     for row in rows:
         cid = row[0]
@@ -101,23 +100,28 @@ def get_available_courses(user_id):
                 'name': row[2],
                 'credits': row[3],
                 'term_recommended': row[4],
-                'requirement_group': row[5]
+                'requirement_group': row[5],
+                'prereq_groups': {}
             }
 
         # add prereq to map if row has one, but NULL if not
         if row[6] is not None:
-            prereq_map[cid][row[7]].append(row[6])
+            group = str(row[7])     # use string key for JSON
+            if group not in course_map[cid]['prereq_groups']:
+                course_map[cid]['prereq_groups'][group] = []
+            course_map[cid]['prereq_groups'][group].append(row[6])
 
     # checks and assigns status for each course
     result = []
     for cid, course in course_map.items():
+        prereq_groups = course['prereq_groups']
         
         if cid in completed:
             status = 'completed'
             course['user_course_id'] = completed[cid]
 
 
-        elif not prereq_map[cid]:
+        elif not prereq_groups:
             status = 'available'
             course['user_course_id'] = None
 
@@ -125,7 +129,7 @@ def get_available_courses(user_id):
             # check all prereqs are satisfied
             all_groups_satisfied = all(
                 any(prereq_id in completed for prereq_id in group_prereqs)
-                for group_prereqs in prereq_map[cid].values()
+                for group_prereqs in prereq_groups.values()
             )
             status = 'available' if all_groups_satisfied else 'locked'
             course['user_course_id'] = None
