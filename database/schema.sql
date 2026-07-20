@@ -33,7 +33,7 @@ CREATE TABLE user_courses (
     course_id INTEGER REFERENCES courses(course_id),
     grade VARCHAR(2),
     passed BOOLEAN NOT NULL,
-    semester_taken VARCHAR(20)
+    term_taken INTEGER
 );
 
 -- USER_PLANS: keep track of student's degree plan
@@ -44,12 +44,29 @@ CREATE TABLE user_plans (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- PLANNED_COURSES: drag and drop tracker for which course is dropped into which semester
+-- PLANNED_COURSES: drag and drop tracker for which course is dropped into which term
 CREATE TABLE planned_courses (
     planned_course_id SERIAL PRIMARY KEY,
     plan_id INTEGER REFERENCES user_plans(plan_id),
     course_id INTEGER REFERENCES courses(course_id),
-    planned_semester VARCHAR(10) NOT NULL,
+    planned_term INTEGER NOT NULL,
     planned_year INTEGER NOT NULL
+);
+
+-- PLANNER_TERMS: stores each term in a student's plan
+CREATE TABLE planner_terms (
+    term_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id),
+    term_number INTEGER NOT NULL,
+    is_summer BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- PLANNER_COURSES: stores which course is in which term
+CREATE TABLE planner_courses (
+    planner_course_id SERIAL PRIMARY KEY,
+    term_id INTEGER REFERENCES planner_terms(term_id),
+    course_id INTEGER REFERENCES courses(course_id),
+    position INTEGER DEFAULT 0
 );
 

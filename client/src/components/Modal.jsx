@@ -3,24 +3,21 @@ import { useState } from 'react'
 function Modal({ type, course, onConfirm, onCancel }) {
 
   const [grade, setGrade] = useState('')
-  const [semester, setSemester] = useState('')
+  const [term, setTerm] = useState('')
 
   const grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'D', 'E']
 
-  const generateSemesters = () => {
-      const semesters = []
-      const currentYear = new Date().getFullYear()
-      for (let year = currentYear - 5; year <= currentYear + 1; year++) {
-          semesters.push(`Spring ${year}`)
-          semesters.push(`Summer ${year}`)
-          semesters.push(`Fall ${year}`)
+  const generateTerms = () => {
+      const terms = []
+      for (let i = 1; i <= 12; i++) {
+          terms.push(i)
       }
-      return semesters.reverse()
+      return terms
   }
 
   const handleConfirm = () => {
-    if (type === 'grade' && (!grade || !semester)) return
-    onConfirm(grade, semester)
+    if (type === 'grade' && (!grade || !term)) return
+    onConfirm(grade, term)
   }
 
   return (
@@ -44,14 +41,14 @@ function Modal({ type, course, onConfirm, onCancel }) {
               ))}
             </select>
 
-            <label className="block text-sm font-medium text-gray-700 mb-1">Semester Taken</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Term Taken</label>
             <select
-              value={semester}
-              onChange={e => setSemester(e.target.value)}
+              value={term}
+              onChange={e => setTerm(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             >
-              <option value="">Select semester...</option>
-              {generateSemesters().map(s => (
+              <option value="">Select Term...</option>
+              {generateTerms().map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
@@ -75,7 +72,7 @@ function Modal({ type, course, onConfirm, onCancel }) {
           </button>
           <button
             onClick={handleConfirm}
-            disabled={type === 'grade' && (!grade || !semester)}
+            disabled={type === 'grade' && (!grade || !term)}
             className={`flex-1 py-2 rounded-lg font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed
               ${type === 'grade' ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-red-500 hover:bg-red-600 text-white'}`}
           >
