@@ -9,11 +9,13 @@ const USER_ID = 1
 function CourseList() {
     const [courses, setCourses] = useState([])
     const [loading, setLoading] = useState(false)
+    const unlockedRef = useRef([])
     const [shakingCourse, setShakingCourse] = useState(null)
     const [errorCourse, setErrorCourse] = useState(null)
     const [celebration, setCelebration] = useState(null)
     const courseRefs = useRef({})
     const [modal, setModal] = useState(null)
+    const [failModal, setFailModal] = useState(null)
     const [prereqWarning, setPrereqWarning] = useState(null) // { affectedCourses: [] }
 
     //fetch course on page load
@@ -183,13 +185,26 @@ function CourseList() {
                             }
                         } else {
                             setModal(null)
-                            // get unlocked BEFORE fetching new course data
                             const unlockedCourses = getUnlockedCourses(modal.course.course_id, courses)
+                            unlockedRef.current = unlockedCourses
+                            const savedCourse = modal.course
+                            
+                            // check if grade is passing before celebrating
+                            const passingGrades = new Set(['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C'])
+                            const passed = passingGrades.has(grade)
+                            
                             await addUserCourse(USER_ID, modal.course.course_id, grade, term)
                             await fetchCourses()
+                            
+                            if (!passed) {
+                                // show error instead of celebration
+                                setFailModal({ course: savedCourse, grade })
+                                return
+                            }
+                            
                             setTimeout(() => {
-                                fireConfetti(modal.course.course_id)
-                                setCelebration({ course: modal.course, unlockedCourses })
+                                fireConfetti(savedCourse.course_id)
+                                setCelebration({ course: savedCourse, unlockedCourses: unlockedRef.current })
                             }, 100)
                         }
                     }}
@@ -243,6 +258,27 @@ function CourseList() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {failModal && (
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center border-4 border-red-400">
+                        <div className="text-5xl mb-4">😔</div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                            {failModal.course.code} — Grade: {failModal.grade}
+                        </h2>
+                        <p className="text-gray-500 mb-2">{failModal.course.name}</p>
+                        <p className="text-red-500 font-medium mb-6">
+                            A grade of D or below does not satisfy this course requirement. You may need to retake it.
+                        </p>
+                        <button
+                            onClick={() => setFailModal(null)}
+                            className="bg-red-400 hover:bg-red-500 text-white font-bold py-2 px-8 rounded-full transition-all"
+                        >
+                            Got it
+                        </button>
                     </div>
                 </div>
             )}
