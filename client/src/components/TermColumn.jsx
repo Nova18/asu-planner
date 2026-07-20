@@ -1,7 +1,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import CourseCard from './CourseCard'
 
-function TermColumn({ term, isOver, activeCourse, canPlace, isSidebar }) {
+function TermColumn({ term, isOver, activeCourse, canPlace, isSidebar, courseStatuses }) {
     const { setNodeRef } = useDroppable({ id: term.term_id })
 
     const getBorderColor = () => {
@@ -29,9 +29,12 @@ function TermColumn({ term, isOver, activeCourse, canPlace, isSidebar }) {
             </div>
 
             <div className="flex flex-col gap-2">
-                {term.courses.map(course => (
-                    <CourseCard key={course.course_id} course={course} />
-                ))}
+                {term.courses.map(course => {
+                    const status = courseStatuses?.find(c => c.course_id === course.course_id)?.status || 'locked'
+                    return (
+                        <CourseCard key={course.course_id} course={course} status={status} />
+                    )
+                })}
             </div>
 
             {term.courses.length === 0 && (

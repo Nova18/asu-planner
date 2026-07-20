@@ -214,6 +214,7 @@ function PlannerPage() {
                                         isOver={overTermId === term.term_id}
                                         activeCourse={activeCourse}
                                         canPlace={placement.valid}
+                                        courseStatuses={courses}
                                     />
                                 )
                             })
